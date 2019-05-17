@@ -222,7 +222,7 @@ df.to_csv('mlp_results.csv')
 
 #%% Tournament
 pred1 = NbitCounter(n=2)
-pred2 = Gshare(k=16, n=2)
+pred2 = Bimodal(k=16,n=2)
 predictor = Tournament(2, pred1, pred2)
 
 y_pred = predictor.predict(trace['Branch'], trace['PC'])

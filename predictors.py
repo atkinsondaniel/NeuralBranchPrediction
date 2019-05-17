@@ -226,6 +226,12 @@ class Bimodal(Predictor):
         
         return y_pred
 
+    def tour_predict(self, pc, branch):
+        index = pc & (int(2**self.k)-1)
+        y_pred = self.states[self.ph_table[index]]['prediction']
+        hit = (y_pred == branch)
+        self.ph_table[index] = self.states[self.ph_table[index]]['transition'][hit]
+        return y_pred, hit
 
 class Correlation(Predictor):
     """ Correlation Branch Predictor """
@@ -270,7 +276,13 @@ class Correlation(Predictor):
         
         return y_pred
 
-
+    def tour_predict(self, _, branch):
+        index = int(''.join(self.bhr), 2)
+        y_pred = self.states[self.ph_table[index]]['prediction']
+        hit = (y_pred == branch)
+        self.ph_table[index] = self.states[self.ph_table[index]]['transition'][hit]
+        self.bhr.extend('1' if hit else '0')
+        return y_pred, hit
 class Gshare(Predictor):
     """ Gshare Branch Predictor """
 
@@ -319,6 +331,7 @@ class Gshare(Predictor):
         y_pred = self.states[self.ph_table[index]]['prediction']
         hit = (y_pred == branch)
         self.ph_table[index] = self.states[self.ph_table[index]]['transition'][hit]
+        self.bhr.extend('1' if hit else '0')
         return y_pred, hit
 class Perceptron(NeuralNetwork):
     """
@@ -468,7 +481,6 @@ class Tournament(Predictor):
             else:
                 y_pred[i] = prediction2
                 y = y + 1
-            
             
             # Update the  states
             if hit1 != hit2:
