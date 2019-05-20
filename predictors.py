@@ -485,6 +485,6 @@ class Tournament(Predictor):
             # Update the  states
             if hit1 != hit2:
                self.current_state = self.states[self.current_state]['transition'][hit1]            
-        print("Used predictor 1:" + str(x))
-        print("Used predictor 2:" + str(y))
+        print(self.pred1.name + ":" + str(x))
+        print(self.pred2.name + ":" + str(y))
         return y_pred

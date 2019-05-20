@@ -220,29 +220,62 @@ df = pd.DataFrame.from_dict(results, orient='index')
 df.to_csv('mlp_results.csv')
 
 #%% Tournament Models
-predictors = [NbitCounter(n=2),
+predictors = [NbitCounter(n=1),
+              NbitCounter(n=2),
               Bimodal(k=2,n=2),
+              Bimodal(k=8,n=2),
+              Bimodal(k=16,n=2),
               Correlation(k=2,n=2),
-              Gshare(k=2,n=2)]
+              Correlation(k=8,n=2),
+              Correlation(k=16,n=2),
+              Gshare(k=2,n=2),
+              Gshare(k=8,n=2),
+              Gshare(k=16,n=2)]
 
 
 
+#%% Setup 
 
+color_range = "B2:L12"
+names = []
+for pred in predictors:   
+    names.append(pred.name)
+    
+df = pd.DataFrame(columns=names, index=names)
 
 
 #%% Tournament
 for combo in list(combinations(predictors,2)):
-    predictor = Tournament(2, combo[0], combo[1])
-
-    y_pred = predictor.predict(trace['Branch'], trace['PC'])
-    results[predictor.name] = utils.evaluate(trace['Branch'], y_pred, name=predictor.name,
+    predictor1 = Tournament(2, combo[0], combo[1])
+    predictor2 = Tournament(2, combo[1], combo[0])
+    
+    
+    y_pred = predictor1.predict(trace['Branch'], trace['PC'])
+    results[predictor1.name] = utils.evaluate(trace['Branch'], y_pred, name=predictor1.name,
            plot=plot, normalize=normalize)
-    print('\n', results[predictor.name])
+    print('\n', results[predictor1.name])
+    
+    y_pred = predictor2.predict(trace['Branch'], trace['PC'])
+    results[predictor2.name] = utils.evaluate(trace['Branch'], y_pred, name=predictor2.name,
+           plot=plot, normalize=normalize)
+    print('\n', results[predictor2.name])
+
+    df[combo[0].name][combo[1].name] = results[predictor1.name]['Accuracy']
+    df[combo[1].name][combo[0].name] = results[predictor2.name]['Accuracy']
 
 
+writer = pd.ExcelWriter('results.xlsx', engine='xlsxwriter')
+df.to_excel(writer, sheet_name='report')
 
+workbook = writer.book
+worksheet = writer.sheets['report']
+worksheet.conditional_format(color_range, {'type': '2_color_scale',
+                                           'min_color': '#FFFFFF',
+                                           'max_color': '#0000FF'})
+     
 
-
+#%%
+writer.save()
 
 
 
