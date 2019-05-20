@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from itertools import product
+from itertools import (product,combinations)
 
 import utils
 from predictors import (
@@ -13,7 +13,6 @@ from predictors import (
         CNN,
         Tournament
         )
-
 trace = utils.read_data('trace.csv')
 
 results = {}
@@ -220,15 +219,25 @@ for path in paths:
 df = pd.DataFrame.from_dict(results, orient='index')
 df.to_csv('mlp_results.csv')
 
-#%% Tournament
-pred1 = NbitCounter(n=2)
-pred2 = Bimodal(k=16,n=2)
-predictor = Tournament(2, pred1, pred2)
+#%% Tournament Models
+predictors = [NbitCounter(n=2),
+              Bimodal(k=2,n=2),
+              Correlation(k=2,n=2),
+              Gshare(k=2,n=2)]
 
-y_pred = predictor.predict(trace['Branch'], trace['PC'])
-results[predictor.name] = utils.evaluate(trace['Branch'], y_pred, name=predictor.name,
-       plot=plot, normalize=normalize)
-print('\n', results[predictor.name])
+
+
+
+
+
+#%% Tournament
+for combo in list(combinations(predictors,2)):
+    predictor = Tournament(2, combo[0], combo[1])
+
+    y_pred = predictor.predict(trace['Branch'], trace['PC'])
+    results[predictor.name] = utils.evaluate(trace['Branch'], y_pred, name=predictor.name,
+           plot=plot, normalize=normalize)
+    print('\n', results[predictor.name])
 
 
 
